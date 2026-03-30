@@ -85,6 +85,29 @@ jobs:
           name: security-scan-report
           path: trivy-report.txt
 
+  scorecard:
+    runs-on: ubuntu-24.04
+    needs: [security-scan]
+    permissions:
+      security-events: write
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: ossf/scorecard-action@v2.4.0
+        with:
+          results_file: scorecard-results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: scorecard-report
+          path: scorecard-results.sarif
+
   build-and-push:
     runs-on: ubuntu-24.04
     needs: [security-scan]
