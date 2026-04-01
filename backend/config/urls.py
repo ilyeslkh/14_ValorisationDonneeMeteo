@@ -10,6 +10,7 @@ from drf_spectacular.views import (
 )
 
 urlpatterns = [
+    path("",include("django_prometheus.urls")),
     # API v1
     path("api/v1/", include("weather.urls")),
     # OpenAPI schema and documentation

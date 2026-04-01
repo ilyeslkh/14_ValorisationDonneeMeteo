@@ -51,9 +51,44 @@ services:
     networks:
       - app_net
 
+  prometheus:
+    image: prom/prometheus:v3.3.0
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - app_net
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.5.2
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin # Mot de passe par défaut (à changer à la 1ère connexion)
+      - GF_SECURITY_ADMIN_PASSWORD=admin # Mot de passe par défaut (à changer à la 1ère connexion)
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - app_net
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
 volumes:
+  prometheus-data:
+    driver: local
+  grafana-data: # Nouveau volume pour sauvegarder vos dashboards
+    driver: local
   timescaledb-data:
     driver: local
+
 networks:
   app_net:
   bd_net:
+
+
