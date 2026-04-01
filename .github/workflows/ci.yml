@@ -63,24 +63,38 @@ jobs:
 
   security-scan:
     runs-on: ubuntu-24.04
-    needs: [backend, frontend]
+    needs: [ backend, frontend ]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run Trivy security scan
+      # 1. Scan pour générer le rapport format TABLE (pour la console)
+      - name: Run Trivy security scan (Table)
         uses: aquasecurity/trivy-action@master
         with:
-          scan-type: fs
-          scan-ref: .
-          format: table
-          severity: HIGH,CRITICAL
-          output: trivy-report.txt
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          severity: 'HIGH,CRITICAL'
+          output: 'trivy-report.txt'
 
-      - name: Upload scan report
+      # 2. Scan pour générer le rapport CycloneDX SBOM + VEX
+      # Le format CycloneDX est le standard pour inclure des informations VEX
+      - name: Generate CycloneDX SBOM and VEX
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'cyclonedx'
+          output: 'sbom.cdx.json'
+
+      # 3. Upload de tous les rapports de sécurité
+      - name: Upload security reports
         uses: actions/upload-artifact@v4
         with:
-          name: security-scan-report
-          path: trivy-report.txt
+          name: security-scan-reports
+          path: |
+            trivy-report.txt
+            sbom.cdx.json
 
   scorecard:
     runs-on: ubuntu-24.04
